@@ -8,6 +8,14 @@ const firebaseConfig = {
   appId: "1:xxxxxxxxxxxxx:web:xxxxxxxxxxxxx"
 };
 
+// helper to format a Date object to YYYY-MM-DD using local values
+function formatLocalDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 // Initialize Firebase
 let db, firebaseReady = false;
 try {
@@ -27,6 +35,8 @@ let currentMonth = new Date();
 let db_source = "local"; // "firebase" or "local"
 
 // Initialize
+let isLoggedIn = false; // simple state for demo
+
 document.addEventListener("DOMContentLoaded", () => {
   loadTasks();
   loadEvents();
@@ -36,7 +46,27 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCalendar();
   updateCalendarEvents();
   requestNotificationPermission();
+  setupLoginButton();
 });
+
+// ============ LOGIN / AUTH MOCK ============
+
+function setupLoginButton() {
+  const btn = document.getElementById("loginBtn");
+  btn.addEventListener("click", () => {
+    if (isLoggedIn) {
+      // logout
+      isLoggedIn = false;
+      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      showStatus("👋 Logged out", "info");
+    } else {
+      // login (placeholder)
+      isLoggedIn = true;
+      btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+      showStatus("🔐 Logged in (mock)", "success");
+    }
+  });
+}
 
 // ============ FIREBASE FUNCTIONS ============
 async function loadTasks() {
@@ -258,8 +288,8 @@ function renderCalendar() {
   // Days with tasks
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    const dateStr = date.toISOString().split("T")[0];
-    const dayTasks = tasks.filter(t => t.dueDate.split("T")[0] === dateStr);
+    const dateStr = formatLocalDate(date);
+    const dayTasks = tasks.filter(t => formatLocalDate(new Date(t.dueDate)) === dateStr);
     
     html += `<div class='day ${dayTasks.length > 0 ? "has-tasks" : ""}' 
                   onclick="scrollToDate('${dateStr}')">
@@ -301,6 +331,8 @@ function setupEventListeners() {
       document.getElementById("listView").style.display = view === "list" ? "block" : "none";
       document.getElementById("calendarView").style.display = view === "calendar" ? "block" : "none";
       document.getElementById("timerView").style.display = view === "timer" ? "block" : "none";
+      document.getElementById("assistantView").style.display = view === "assistant" ? "block" : "none";
+      document.getElementById("notesView").style.display = view === "notes" ? "block" : "none";
       
       if (view === "dashboard") updateDashboard();
       if (view === "calendar") {
@@ -308,6 +340,7 @@ function setupEventListeners() {
         updateUpcomingEvents();
       }
       if (view === "timer") updateTimerDisplay();
+      if (view === "notes") loadNotes();
     });
   });
 
@@ -383,7 +416,7 @@ function exportTasks() {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `prepal-tasks-${new Date().toISOString().split("T")[0]}.csv`;
+  a.download = `prepal-tasks-${formatLocalDate(new Date())}.csv`;
   a.click();
   showStatus("✅ Tasks exported as CSV", "success");
 }
@@ -571,7 +604,7 @@ function openEventModal(dateStr) {
   modalTitle.textContent = "Add Important Date";
 
   const date = new Date(dateStr);
-  const formattedDate = date.toISOString().split("T")[0];
+  const formattedDate = formatLocalDate(date);
   eventDateInput.value = formattedDate;
 
   // Check if there's already an event on this date
@@ -659,7 +692,7 @@ function updateCalendarEvents() {
   const startingDayOfWeek = firstDay.getDay();
 
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = formatLocalDate(today);
 
   let html = "<div class='weekdays'>";
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -676,10 +709,10 @@ function updateCalendarEvents() {
   // Days with events and tasks
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = formatLocalDate(date);
     
     // Get tasks for this day
-    const dayTasks = tasks.filter(t => t.dueDate.split("T")[0] === dateStr);
+    const dayTasks = tasks.filter(t => formatLocalDate(new Date(t.dueDate)) === dateStr);
     
     // Get events for this day
     const dayEvents = events.filter(e => e.date === dateStr);
@@ -771,7 +804,7 @@ let studyDuration = 25; // in minutes
 let breakDuration = 5; // in minutes
 
 function loadTimerStats() {
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatLocalDate(new Date());
   const timerData = JSON.parse(localStorage.getItem("timerData")) || {};
   
   if (timerData.lastDate === today) {
@@ -799,7 +832,7 @@ function loadTimerStats() {
 }
 
 function saveTimerStats() {
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatLocalDate(new Date());
   const timerData = {
     lastDate: today,
     studyTime: todayStudyTime,
@@ -942,4 +975,181 @@ function updateTimerStats() {
   
   document.getElementById("studyHours").textContent = timeDisplay;
   document.getElementById("sessionCount").textContent = sessionsCompleted;
+}// ============ AI STUDY ASSISTANT ============
+async function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  // Add user message
+  addChatMessage(message, "user");
+  input.value = "";
+  
+  // Show typing indicator
+  addChatMessage("🤔 Thinking...", "bot", true);
+  
+  try {
+    // Call real AI API
+    const response = await askAI(message);
+    // Remove typing indicator and add real response
+    removeTypingIndicator();
+    addChatMessage(response, "bot");
+  } catch (error) {
+    removeTypingIndicator();
+    addChatMessage("Sorry, I'm having trouble connecting right now. Please try again later!", "bot");
+    console.error("AI API Error:", error);
+  }
+}
+
+function handleChatKeyPress(event) {
+  if (event.key === "Enter") {
+    sendChatMessage();
+  }
+}
+
+function addChatMessage(message, sender, isTyping = false) {
+  const chatHistory = document.getElementById("chatHistory");
+  
+  if (isTyping) {
+    // Add typing indicator
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "chat-message bot typing-indicator";
+    typingDiv.id = "typingIndicator";
+    typingDiv.innerHTML = `
+      <div class="message-avatar"><i class="fas fa-robot"></i></div>
+      <div class="message-content">
+        <p>${escapeHtml(message)}</p>
+      </div>
+    `;
+    chatHistory.appendChild(typingDiv);
+  } else {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `chat-message ${sender}`;
+    
+    const avatar = sender === "bot" ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+    
+    messageDiv.innerHTML = `
+      <div class="message-avatar">${avatar}</div>
+      <div class="message-content">
+        <p>${escapeHtml(message)}</p>
+      </div>
+    `;
+    
+    chatHistory.appendChild(messageDiv);
+  }
+  
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const typingIndicator = document.getElementById("typingIndicator");
+  if (typingIndicator) {
+    typingIndicator.remove();
+  }
+}
+
+async function askAI(question) {
+  try {
+    // Call our backend server instead of OpenAI directly
+    const response = await fetch("http://localhost:3000/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: question
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error("Error connecting to AI server:", error);
+    // Fallback to static responses if server is not running
+    return getAIResponse(question);
+  }
+}
+
+function addChatMessage(message, sender) {
+  const chatHistory = document.getElementById("chatHistory");
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `chat-message ${sender}`;
+  
+  const avatar = sender === "bot" ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+  
+  messageDiv.innerHTML = `
+    <div class="message-avatar">${avatar}</div>
+    <div class="message-content">
+      <p>${escapeHtml(message)}</p>
+    </div>
+  `;
+  
+  chatHistory.appendChild(messageDiv);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function getAIResponse(message) {
+  // Fallback static responses when API is not available
+  const responses = {
+    study: [
+      "Hey there! For effective studying, I really recommend the Pomodoro technique - 25 minutes of focused work followed by a 5-minute break. It helps keep your brain fresh and prevents burnout. Give it a try!",
+      "One thing that really helps is active recall. Instead of just re-reading your notes, try testing yourself on the material. It's amazing how much more you remember!",
+      "Don't forget to take care of yourself too! Getting 7-9 hours of sleep and staying hydrated makes a huge difference in how well you can focus and learn."
+    ],
+    time: [
+      "Time management can be tricky, but the Eisenhower Matrix is a game-changer. Just divide your tasks into four categories: urgent/important, important/not urgent, urgent/not important, and neither. It helps you prioritize like a pro!",
+      "I see you're using the study timer - that's awesome! Setting specific study sessions with breaks built in really helps maintain that productivity throughout the day.",
+      "Try creating a weekly schedule that includes everything - classes, study time, meals, exercise, and even some fun time. The key is consistency, not perfection."
+    ],
+    exam: [
+      "For exams, starting early is key. Break down that big syllabus into smaller chunks and create a study plan at least 2 weeks ahead. You'll feel so much more prepared!",
+      "Practice papers are gold! If you can get your hands on some past exams, do them under timed conditions. It helps you understand the format and spot any weak areas.",
+      "On exam day, get there early and read through all the instructions carefully. If you get stuck on a question, don't panic - move on and come back to it later if you have time."
+    ],
+    motivation: [
+      "You're doing great just by asking for help! Set small, achievable goals and celebrate each one. Remember, every expert was once a beginner - you're building skills for your future!",
+      "Find a study buddy or join a study group. Teaching someone else actually helps reinforce your own learning, and it's way more fun than studying alone.",
+      "If you're feeling overwhelmed, that's totally normal. Take a deep breath and remember it's okay to ask for help. Talk to a counselor, your teachers, or even just a friend. You've got this!"
+    ]
+  };
+  
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes("study") || lowerMessage.includes("learn")) {
+    return responses.study[Math.floor(Math.random() * responses.study.length)];
+  } else if (lowerMessage.includes("time") || lowerMessage.includes("schedule")) {
+    return responses.time[Math.floor(Math.random() * responses.time.length)];
+  } else if (lowerMessage.includes("exam") || lowerMessage.includes("test")) {
+    return responses.exam[Math.floor(Math.random() * responses.exam.length)];
+  } else if (lowerMessage.includes("motivat") || lowerMessage.includes("tired")) {
+    return responses.motivation[Math.floor(Math.random() * responses.motivation.length)];
+  } else {
+    return "That's a great question! While I might not have specific details about that topic, I'd recommend checking with your teacher or using reliable academic resources. Is there anything specific about studying, time management, or staying motivated that I can help you with? I'm here to support you! 😊";
+  }
+}
+async function askAI() {
+
+const question = document.getElementById("question").value;
+
+const response = await fetch("https://api.openai.com/v1/chat/completions", {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"Authorization": "Bearer YOUR_API_KEY"
+},
+body: JSON.stringify({
+model: "gpt-4o-mini",
+messages: [{ role: "user", content: question }]
+})
+});
+
+const data = await response.json();
+
+document.getElementById("answer").innerText =
+data.choices[0].message.content;
 }

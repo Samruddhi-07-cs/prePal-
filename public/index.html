@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Study Assistant - PrepPal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-graduation-cap"></i>
+            <span>PrepPal AI Study Assistant</span>
+        </div>
+        <div class="nav-actions">
+            <button id="resetBtn" class="nav-btn" title="Start New Conversation">
+                <i class="fas fa-refresh"></i>
+            </button>
+            <button id="themeBtn" class="nav-btn" title="Toggle Theme">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="assistant-info">
+                <div class="avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="info">
+                    <h3>AI Study Assistant</h3>
+                    <p><i class="fas fa-circle online"></i> Online - Ready to help!</p>
+                </div>
+            </div>
+            <div class="chat-stats">
+                <span id="messageCount">0 messages</span>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content welcome">
+                    <h4>👋 Welcome to your AI Study Assistant!</h4>
+                    <p>I'm here to help you with:</p>
+                    <ul>
+                        <li>📚 Study techniques and learning strategies</li>
+                        <li>🧠 Subject explanations and homework help</li>
+                        <li>⏰ Time management and productivity tips</li>
+                        <li>📝 Exam preparation and test strategies</li>
+                        <li>🎯 Goal setting and motivation</li>
+                    </ul>
+                    <p><strong>Ask me anything about your studies!</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <small>AI is thinking...</small>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <textarea
+                    id="messageInput"
+                    placeholder="Ask me a study question... (e.g., 'How can I improve my memory?', 'Tips for exam preparation?')"
+                    rows="1"
+                    maxlength="1000"
+                ></textarea>
+                <button id="sendBtn" class="send-btn" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="input-footer">
+                <small id="charCount">0/1000</small>
+                <small>Press Enter to send, Shift+Enter for new line</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-toast" id="statusToast" style="display: none;">
+        <i class="fas fa-info-circle"></i>
+        <span id="statusMessage"></span>
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+</html>
