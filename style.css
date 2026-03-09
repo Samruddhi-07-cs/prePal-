@@ -6,15 +6,16 @@
 
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* navy blue gradient background */
+  background: linear-gradient(135deg, #0b3d91 0%, #1a4378 100%);
   min-height: 100vh;
   padding: 10px;
 }
 
 .navbar {
-  background: white;
+  background: #2c3e50; /* deep navy */
   padding: 15px 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,7 +24,7 @@ body {
 }
 
 .navbar h1 {
-  color: #333;
+  color: white;
   font-size: 24px;
 }
 
@@ -33,7 +34,7 @@ body {
 }
 
 .nav-btn {
-  background: #667eea;
+  background: #e67e22; /* rich orange */
   color: white;
   border: none;
   padding: 8px 15px;
@@ -44,17 +45,17 @@ body {
 }
 
 .nav-btn:hover {
-  background: #764ba2;
+  background: #d35400; /* darker orange */
   transform: translateY(-2px);
 }
 
 .container {
-  background: white;
+  background: rgba(255,255,255,0.95);
   padding: 25px;
   border-radius: 15px;
   max-width: 900px;
   margin: 0 auto;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 
 /* View Toggle */
@@ -77,13 +78,13 @@ body {
 }
 
 .toggle-btn.active {
-  background: #667eea;
+  background: #e67e22;
   color: white;
-  border-color: #667eea;
+  border-color: #e67e22;
 }
 
 .toggle-btn:hover {
-  border-color: #667eea;
+  border-color: #e67e22;
 }
 
 /* Input Area */
@@ -107,8 +108,8 @@ input, select, button {
 
 input:focus, select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #e67e22;
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
 }
 
 .add-btn {
@@ -166,9 +167,9 @@ input:focus, select:focus {
 }
 
 .filter-btn.active {
-  background: #667eea;
+  background: #e67e22;
   color: white;
-  border-color: #667eea;
+  border-color: #e67e22;
 }
 
 .export-buttons {
@@ -181,7 +182,7 @@ input:focus, select:focus {
   flex: 1;
   min-width: 130px;
   padding: 10px 15px;
-  background: #FF9800;
+  background: #d35400; /* richer orange */
   color: white;
   border: none;
   border-radius: 5px;
@@ -191,14 +192,13 @@ input:focus, select:focus {
 }
 
 .print-btn {
-  background: #2196F3;
+  background: #2980b9; /* deep blue */
 }
 
 .export-btn:hover {
-  background: #F57C00;
+  background: #e74c3c; /* vivid red */
   transform: translateY(-2px);
 }
-
 .print-btn:hover {
   background: #1976D2;
   transform: translateY(-2px);
